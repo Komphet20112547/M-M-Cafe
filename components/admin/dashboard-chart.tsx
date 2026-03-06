@@ -15,6 +15,7 @@ export function DashboardChart() {
     return <div>ข้อมูลรายได้ไม่ถูกต้อง (monthlyRevenue missing)</div>;
   }
   //eee
+  //test
 
   const monthlyRevenue = Array.isArray(stats.monthlyRevenue) ? stats.monthlyRevenue : [];
   const labels = monthlyRevenue.map(m => {
