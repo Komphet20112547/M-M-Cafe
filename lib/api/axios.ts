@@ -1,8 +1,15 @@
 import axios from 'axios';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
+// กำหนด Base URL แบบ dynamic รองรับทั้ง dev / prod
+const baseApiUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NEXT_PUBLIC_BASE_URL
+    ? `${process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, '')}/api`
+    : '/api');
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
+  baseURL: baseApiUrl,
   headers: {
     'Content-Type': 'application/json',
   },

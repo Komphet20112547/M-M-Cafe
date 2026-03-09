@@ -14,9 +14,16 @@ export default function QRScanPage() {
   const { data: pet, isLoading } = usePetByQR(scannedCode || '');
 
   const handleScan = (data: string) => {
-    if (data) {
-      setScannedCode(data);
+    if (!data) return;
+
+    // ถ้าเป็น URL เต็ม ให้พาไปหน้านั้นเลย (รองรับ QR ที่ encode เป็นลิงก์โดเมนจริง)
+    if (data.startsWith('http://') || data.startsWith('https://')) {
+      router.push(data);
+      return;
     }
+
+    // ถ้าเป็นโค้ดอย่างเดียว ใช้ API `/pets/qr/:code` ตามเดิม
+    setScannedCode(data);
   };
 
   const handleError = (err: any) => {

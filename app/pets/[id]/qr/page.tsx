@@ -16,9 +16,18 @@ export default function PetQRPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (pet?.qrCode) {
-      generateQRCode(pet.qrCode).then(setQrCodeDataUrl).catch(console.error);
-    }
+    if (!pet) return;
+
+    // ใช้ BASE URL แบบ dynamic สำหรับ QR ให้ชี้ไปยังโดเมนจริง
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
+
+    const targetUrl = `${baseUrl.replace(/\/+$/, '')}/pets/${pet.id}`;
+
+    generateQRCode(targetUrl)
+      .then(setQrCodeDataUrl)
+      .catch(console.error);
   }, [pet]);
 
   if (isLoading) {

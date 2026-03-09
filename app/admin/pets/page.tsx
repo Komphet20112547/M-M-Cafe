@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePets, useCreatePet, useUpdatePet, useDeletePet } from '@/lib/api/queries/pets';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { Trash2, Edit, Plus } from 'lucide-react';
 import type { Pet } from '@/types';
 
 export default function AdminPetsPage() {
+  const router = useRouter();
   const { data: pets, isLoading } = usePets();
   const { mutate: createPet } = useCreatePet();
   const { mutate: updatePet } = useUpdatePet();
@@ -47,9 +49,13 @@ export default function AdminPetsPage() {
       );
     } else {
       createPet(data, {
-        onSuccess: () => {
+        onSuccess: (newPet: Pet) => {
           setIsDialogOpen(false);
           setEditingPet(null);
+          // หลังเพิ่มสัตว์เลี้ยงใหม่ เสร็จแล้วไปหน้าดู QR Code ทันที
+          if (newPet?.id) {
+            router.push(`/pets/${newPet.id}/qr`);
+          }
         },
         onError: (error: any) => {
           console.error('Create pet error:', error);

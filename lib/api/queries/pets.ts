@@ -88,24 +88,32 @@ export const useWeeklySchedules = () => {
           weekDates.push(date.toISOString().split('T')[0]);
         }
 
-        // Fetch schedules for each day with error handling
+        // Fetch schedules for each day with extra safety soว่าไม่มี Promise ใด reject
         const schedulesPromises = weekDates.map(date =>
-          api.get<PetSchedule[]>(`/pets/schedules`, {
-            params: { date },
-          })
-            .then(res => ({ date, schedules: res.data || [] }))
-            .catch(error => {
+          api
+            .get<PetSchedule[]>(`/pets/schedules`, {
+              params: { date },
+            })
+            .then((res) => ({ date, schedules: res.data || [] }))
+            .catch((error) => {
               console.error(`Error fetching schedule for ${date}:`, error);
-              return { date, schedules: [] };
+              return { date, schedules: [] as PetSchedule[] };
             })
         );
 
-        const results = await Promise.all(schedulesPromises);
-        
-        // Group by date
+        const results = await Promise.allSettled(schedulesPromises);
+
+        // Group by date (รองรับทั้ง fulfilled / rejected แบบปลอดภัย)
         const weeklyData: Record<string, PetSchedule[]> = {};
-        results.forEach(({ date, schedules }) => {
-          weeklyData[date] = Array.isArray(schedules) ? schedules : [];
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            const { date, schedules } = result.value;
+            weeklyData[date] = Array.isArray(schedules) ? schedules : [];
+          } else {
+            const date = weekDates[index];
+            console.error(`Weekly schedule request failed for ${date}:`, result.reason);
+            weeklyData[date] = [];
+          }
         });
 
         return weeklyData;
@@ -124,9 +132,10 @@ export const useWeeklySchedules = () => {
 export const useCreatePet = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (pet: Omit<Pet, 'id' | 'createdAt' | 'updatedAt' | 'qrCode'>) => {
+  return useMutation<Pet, unknown, Omit<Pet, 'id' | 'createdAt' | 'updatedAt' | 'qrCode'>>({
+    mutationFn: async (pet) => {
       const { data } = await api.post<Pet>('/pets', pet);
+      // data.id มาจาก backend ตรงกับคอลัมน์ pets.id (string/UUID)
       return data;
     },
     onSuccess: () => {
