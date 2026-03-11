@@ -142,11 +142,6 @@ export default function WeeklySchedulePage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                     {petsWithSchedules.map(({ pet, schedule }) => {
                       if (!pet || !schedule) return null;
-                      const hasTimeSlots = Array.isArray(schedule?.timeSlots) && schedule.timeSlots.length > 0;
-                      const availableSlots = Array.isArray(schedule?.timeSlots) 
-                        ? schedule.timeSlots.filter((slot: any) => slot?.isAvailable !== false && slot?.isRestTime !== true) 
-                        : [];
-                      
                       return (
                         <Link
                           key={pet.id}
@@ -175,21 +170,6 @@ export default function WeeklySchedulePage() {
                                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                                   {pet.breed}
                                 </p>
-                              )}
-                              {hasTimeSlots && availableSlots.length > 0 && (
-                                <div className="flex items-center justify-center sm:justify-start gap-1 mt-2">
-                                  <Clock className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground">
-                                    {availableSlots.length} รอบ
-                                  </span>
-                                </div>
-                              )}
-                              {hasTimeSlots && availableSlots.length === 0 && (
-                                <div className="mt-2">
-                                  <span className="text-xs text-muted-foreground">
-                                    ไม่มีรอบพร้อมเล่น
-                                  </span>
-                                </div>
                               )}
                             </div>
                           </div>
