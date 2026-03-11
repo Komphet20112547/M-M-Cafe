@@ -2,6 +2,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../axios';
 import type { Pet, PetSchedule } from '@/types';
 
+// Helper: แปลง Date เป็น string รูปแบบ YYYY-MM-DD ตามเวลาไทย (Asia/Bangkok)
+const toThailandDateString = (date: Date): string => {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(date);
+};
+
 // Get all pets
 export const usePets = () => {
   return useQuery({
@@ -39,7 +50,7 @@ export const usePetByQR = (qrCode: string) => {
 
 // Get pet schedule
 export const usePetSchedule = (petId: string, date?: string) => {
-  const today = date || new Date().toISOString().split('T')[0];
+  const today = date || toThailandDateString(new Date());
 
   return useQuery({
     queryKey: ['pets', petId, 'schedule', today],
@@ -55,7 +66,7 @@ export const usePetSchedule = (petId: string, date?: string) => {
 
 // Get today's schedules for all pets
 export const useTodaySchedules = (date?: string) => {
-  const today = date || new Date().toISOString().split('T')[0];
+  const today = date || toThailandDateString(new Date());
 
   return useQuery({
     queryKey: ['pets', 'schedules', today],
@@ -74,18 +85,18 @@ export const useWeeklySchedules = () => {
     queryKey: ['pets', 'schedules', 'weekly'],
     queryFn: async () => {
       try {
-        // Get dates for the week (Sunday to Saturday)
+        // Get dates for the week (Sunday to Saturday) อิงเวลาไทย
         const today = new Date();
-        const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+        const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday (ตามเวลา local ของ browser ซึ่งสำหรับลูกค้าคือไทย)
         const sunday = new Date(today);
         sunday.setDate(today.getDate() - dayOfWeek);
         sunday.setHours(0, 0, 0, 0);
-        
+
         const weekDates: string[] = [];
         for (let i = 0; i < 7; i++) {
           const date = new Date(sunday);
           date.setDate(sunday.getDate() + i);
-          weekDates.push(date.toISOString().split('T')[0]);
+          weekDates.push(toThailandDateString(date));
         }
 
         // Fetch schedules for each day with extra safety soว่าไม่มี Promise ใด reject

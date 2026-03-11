@@ -10,6 +10,17 @@ import Image from 'next/image';
 
 const dayNames = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
 
+// Helper: ใช้เวลาไทยในการคิดวันและแปลงเป็น string
+const toThailandDateString = (date: Date): string => {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(date);
+};
+
 export default function WeeklySchedulePage() {
   const { data: weeklyData, isLoading } = useWeeklySchedules();
 
@@ -19,13 +30,13 @@ export default function WeeklySchedulePage() {
     const dayOfWeek = today.getDay();
     const sunday = new Date(today);
     sunday.setDate(today.getDate() - dayOfWeek);
-    
+
     const dates: { date: string; dayName: string }[] = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(sunday);
       date.setDate(sunday.getDate() + i);
       dates.push({
-        date: date.toISOString().split('T')[0],
+        date: toThailandDateString(date),
         dayName: dayNames[i],
       });
     }
@@ -86,7 +97,8 @@ export default function WeeklySchedulePage() {
               item.pet?.id && idx === self.findIndex(i => i.pet?.id === item.pet?.id)
             ) as Array<{ pet: any; schedule: any }>;
 
-          const isToday = new Date(date).toDateString() === new Date().toDateString();
+          const isToday =
+            toThailandDateString(new Date()) === date;
 
           return (
             <Card 
@@ -109,11 +121,14 @@ export default function WeeklySchedulePage() {
                         )}
                       </CardTitle>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        {new Date(date).toLocaleDateString('th-TH', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
+                        {new Date(date + 'T00:00:00+07:00').toLocaleDateString(
+                          'th-TH',
+                          {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          }
+                        )}
                       </p>
                     </div>
                   </div>

@@ -1,0 +1,18 @@
+stages:
+  - build
+  - deploy
+
+build_job:
+  stage: build
+  image: node:18-alpine
+  script:
+    - npm install
+    - npm run build
+
+deploy_job:
+  stage: deploy
+  image: node:18-alpine
+  only:
+    - main
+  script:
+    - npx vercel deploy --token $VERCEL_TOKEN --prod --yes
