@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   output: "standalone",
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default nextConfig;

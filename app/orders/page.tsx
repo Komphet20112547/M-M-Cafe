@@ -6,6 +6,8 @@ import { useUserOrders } from '@/lib/api/queries/orders';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useQueryClient } from '@tanstack/react-query';
+import { connectSocket } from '@/lib/realtime/client';
 
 const statusLabels: Record<string, string> = {
   pending: 'รอชำระเงิน',
@@ -23,8 +25,9 @@ const statusColors: Record<string, string> = {
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const { data: orders, isLoading, error } = useUserOrders();
+  const queryClient = useQueryClient();
 
   // Redirect admin users away from user orders page
   useEffect(() => {
@@ -32,6 +35,22 @@ export default function OrdersPage() {
       router.push('/admin/orders');
     }
   }, [user, router]);
+
+  useEffect(() => {
+    const socket = connectSocket(token);
+    if (!socket) return;
+
+    const refresh = () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    };
+
+    socket.on('order:created', refresh);
+    socket.on('order:updated', refresh);
+    return () => {
+      socket.off('order:created', refresh);
+      socket.off('order:updated', refresh);
+    };
+  }, [queryClient]);
 
   if (user?.role === 'admin') {
     return null;

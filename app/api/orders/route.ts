@@ -3,6 +3,9 @@ import { getAllOrders, createOrder } from '@/lib/db/db';
 import { verifyToken, getTokenFromRequest } from '@/lib/auth/jwt';
 import { getMenuItemById } from '@/lib/db/db';
 import type { OrderItem } from '@/types';
+import { emitToAdmins, emitToUser } from '@/lib/realtime/io';
+
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
@@ -106,6 +109,9 @@ export async function POST(request: NextRequest) {
       total,
       status: 'pending',
     });
+
+    emitToAdmins('order:created', { order });
+    emitToUser(payload.userId, 'order:created', { order });
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {

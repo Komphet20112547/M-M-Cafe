@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrderById, updateOrderStatus } from '@/lib/db/db';
 import { verifyToken, getTokenFromRequest } from '@/lib/auth/jwt';
 import type { OrderStatus } from '@/types';
+import { emitToAdmins, emitToUser } from '@/lib/realtime/io';
+
+export const runtime = 'nodejs';
 
 export async function PATCH(
   request: NextRequest,
@@ -38,6 +41,9 @@ export async function PATCH(
       );
     }
     
+    emitToAdmins('order:updated', { order });
+    emitToUser(order.userId, 'order:updated', { order });
+
     return NextResponse.json(order);
   } catch (error) {
     console.error('Update order status error:', error);
