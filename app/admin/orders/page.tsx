@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAllOrders, useUpdateOrderStatus } from '@/lib/api/queries/orders';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import type { OrderStatus } from '@/types';
+import { useQueryClient } from '@tanstack/react-query';
+import { connectSocket } from '@/lib/realtime/client';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 const statusLabels: Record<OrderStatus, string> = {
   pending: 'รอชำระเงิน',
@@ -27,6 +30,24 @@ export default function AdminOrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | undefined>(undefined);
   const { data: orders, isLoading } = useAllOrders(selectedStatus);
   const { mutate: updateStatus } = useUpdateOrderStatus();
+  const queryClient = useQueryClient();
+  const token = useAuthStore((s) => s.token);
+
+  useEffect(() => {
+    const socket = connectSocket(token);
+    if (!socket) return;
+
+    const refresh = () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    };
+
+    socket.on('order:created', refresh);
+    socket.on('order:updated', refresh);
+    return () => {
+      socket.off('order:created', refresh);
+      socket.off('order:updated', refresh);
+    };
+  }, [queryClient]);
 
   const handleApprove = (orderId: string) => {
     updateStatus({ id: orderId, status: 'paid' });
