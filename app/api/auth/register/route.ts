@@ -6,7 +6,7 @@ import { mockPasswords } from '@/lib/db/mock-data';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name, role } = body;
+    const { email, password, name, role, secretCode } = body;
 
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -17,6 +17,17 @@ export async function POST(request: NextRequest) {
 
     // Validate role
     const userRole = role === 'admin' ? 'admin' : 'user';
+
+    // If trying to register as admin, require the shop secret code
+    if (userRole === 'admin') {
+      const adminSecret = process.env.ADMIN_SECRET || 'M&M cafe';
+      if (!secretCode || secretCode !== adminSecret) {
+        return NextResponse.json(
+          { error: 'Invalid or missing admin secret code' },
+          { status: 403 }
+        );
+      }
+    }
 
     // Validate password length
     if (password.length < 6) {

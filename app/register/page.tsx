@@ -20,6 +20,7 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     role: 'user' as UserRole,
+    secretCode: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,6 +39,7 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         role: formData.role,
+        secretCode: formData.secretCode,
       },
       {
         onSuccess: () => {
@@ -141,6 +143,17 @@ export default function RegisterPage() {
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       ⚠️ <strong>คำเตือน:</strong> บัญชีผู้ดูแลระบบมีสิทธิ์เข้าถึงและจัดการข้อมูลทั้งหมดของระบบ กรุณาใช้อย่างระมัดระวัง
                     </p>
+                    <div className="mt-3 space-y-2">
+                      <Label htmlFor="secretCode">รหัสลับร้าน (สำหรับสมัครเป็น Admin)</Label>
+                      <Input
+                        id="secretCode"
+                        type="text"
+                        placeholder="กรอกรหัสลับของทางร้าน"
+                        value={formData.secretCode}
+                        onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })}
+                        required={formData.role === 'admin'}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               )}
