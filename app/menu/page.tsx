@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMenuItems } from '@/lib/api/queries/menu';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -10,8 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShoppingCart, Plus, Minus } from 'lucide-react';
 
 export default function MenuPage() {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<'food' | 'drink' | 'all'>('all');
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const { data: menuItems, isLoading, error } = useMenuItems(
     selectedCategory === 'all' ? undefined : selectedCategory
   );
@@ -19,6 +21,12 @@ export default function MenuPage() {
   const items = useCartStore((state) => state.items);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const isAdmin = user?.role === 'admin';
+
+  const requireAuthForCart = () => {
+    if (isAuthenticated) return true;
+    router.push('/login');
+    return false;
+  };
 
   const getItemQuantity = (menuItemId: string) => {
     const item = items.find((item) => item.menuItemId === menuItemId);
@@ -116,7 +124,10 @@ export default function MenuPage() {
                         variant="outline"
                         size="icon"
                         className="h-9 w-9"
-                        onClick={() => updateQuantity(item.id, quantity - 1)}
+                        onClick={() => {
+                          if (!requireAuthForCart()) return;
+                          updateQuantity(item.id, quantity - 1);
+                        }}
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
@@ -125,13 +136,22 @@ export default function MenuPage() {
                         variant="outline"
                         size="icon"
                         className="h-9 w-9"
-                        onClick={() => updateQuantity(item.id, quantity + 1)}
+                        onClick={() => {
+                          if (!requireAuthForCart()) return;
+                          updateQuantity(item.id, quantity + 1);
+                        }}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   ) : (
-                    <Button onClick={() => addItem(item)} className="w-full sm:flex-1">
+                    <Button
+                      onClick={() => {
+                        if (!requireAuthForCart()) return;
+                        addItem(item);
+                      }}
+                      className="w-full sm:flex-1"
+                    >
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       <span className="hidden sm:inline">เพิ่มลงตะกร้า</span>
                       <span className="sm:hidden">เพิ่ม</span>
