@@ -97,11 +97,6 @@ export default function LoginPage() {
             สมัครสมาชิก
           </Link>
         </p>
-        <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border/50 text-xs text-muted-foreground">
-          <p className="font-semibold mb-1">บัญชีทดสอบ:</p>
-          <p>Admin: admin@petcafe.com / admin123</p>
-          <p>User: user@example.com / admin123</p>
-        </div>
       </div>
     </div>
   );

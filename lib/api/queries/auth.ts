@@ -13,6 +13,7 @@ interface RegisterData {
   password: string;
   name: string;
   role?: 'user' | 'admin';
+  adminCode?: string;
 }
 
 // Login mutation

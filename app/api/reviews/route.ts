@@ -44,6 +44,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
+    if (payload.role !== 'user') {
+      return NextResponse.json(
+        { error: 'เฉพาะลูกค้าทั่วไปเท่านั้นที่สามารถให้รีวิวได้' },
+        { status: 403 }
+      );
+    }
+
     const orders = await getAllOrders(payload.userId);
     if (!orders || orders.length === 0) {
       return NextResponse.json(

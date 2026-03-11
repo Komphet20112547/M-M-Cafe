@@ -6,7 +6,7 @@ import { mockPasswords } from '@/lib/db/mock-data';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name, role } = body;
+    const { email, password, name, role, adminCode } = body;
 
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -15,8 +15,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate role
-    const userRole = role === 'admin' ? 'admin' : 'user';
+    // Validate role + admin code
+    let userRole: 'user' | 'admin' = 'user';
+    if (role === 'admin') {
+      if (adminCode !== 'M&M') {
+        return NextResponse.json(
+          { error: 'รหัสสำหรับสมัคร Admin ไม่ถูกต้อง' },
+          { status: 403 }
+        );
+      }
+      userRole = 'admin';
+    }
 
     // Validate password length
     if (password.length < 6) {

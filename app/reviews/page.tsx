@@ -15,7 +15,7 @@ export default function ReviewsPage() {
   const { data: reviews, isLoading: reviewsLoading, error: reviewsError } = useReviews();
   const { data: ratingData, isLoading: ratingLoading, error: ratingError } = useAverageRating();
   const { mutate: createReview, isPending, error: createError } = useCreateReview();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { data: orders, isLoading: ordersLoading, error: ordersError } = useUserOrders();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -23,9 +23,13 @@ export default function ReviewsPage() {
   const [comment, setComment] = useState('');
 
   const hasOrders = !!orders && orders.length > 0;
+  const isUserRole = user?.role === 'user';
   // Treat "paid" as confirmed by admin in current flow.
   const canCreateReview =
-    isAuthenticated && !!orders && orders.some((o) => o.status === 'paid' || o.status === 'completed');
+    isAuthenticated &&
+    isUserRole &&
+    !!orders &&
+    orders.some((o) => o.status === 'paid' || o.status === 'completed');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +110,18 @@ export default function ReviewsPage() {
         </Card>
       )}
 
-      {isAuthenticated && !canCreateReview && (
+      {isAuthenticated && user?.role === 'admin' && (
+        <Card className="mb-5 sm:mb-6 md:mb-8 border-2 border-border/50 rounded-2xl sm:rounded-3xl glass fade-in">
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl text-primary">แอดมินไม่สามารถเขียนรีวิวได้</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              ฟีเจอร์รีวิวเปิดให้เฉพาะผู้ใช้งานทั่วไป (ลูกค้า) เท่านั้น
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {isAuthenticated && user?.role !== 'admin' && !canCreateReview && (
         <Card className="mb-5 sm:mb-6 md:mb-8 border-2 border-border/50 rounded-2xl sm:rounded-3xl glass fade-in">
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl text-primary">ไม่สามารถเขียนรีวิวได้</CardTitle>

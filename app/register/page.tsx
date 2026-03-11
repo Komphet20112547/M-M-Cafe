@@ -20,6 +20,7 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     role: 'user' as UserRole,
+    adminCode: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -32,12 +33,18 @@ export default function RegisterPage() {
       alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
       return;
     }
+    if (formData.role === 'admin' && formData.adminCode !== 'M&M') {
+      alert('รหัสสมัคร Admin ไม่ถูกต้อง');
+      return;
+    }
+
     register(
       {
         name: formData.name,
         email: formData.email,
         password: formData.password,
         role: formData.role,
+        adminCode: formData.role === 'admin' ? formData.adminCode : undefined,
       },
       {
         onSuccess: () => {
@@ -136,13 +143,28 @@ export default function RegisterPage() {
               </div>
             </RadioGroup>
               {formData.role === 'admin' && (
-                <Card className="border-primary/30 bg-primary/5 backdrop-blur-sm">
-                  <CardContent className="pt-4">
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      ⚠️ <strong>คำเตือน:</strong> บัญชีผู้ดูแลระบบมีสิทธิ์เข้าถึงและจัดการข้อมูลทั้งหมดของระบบ กรุณาใช้อย่างระมัดระวัง
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="space-y-3">
+                  <Card className="border-primary/30 bg-primary/5 backdrop-blur-sm">
+                    <CardContent className="pt-4">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        ⚠️ <strong>คำเตือน:</strong> บัญชีผู้ดูแลระบบมีสิทธิ์เข้าถึงและจัดการข้อมูลทั้งหมดของระบบ กรุณาใช้อย่างระมัดระวัง
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="adminCode">รหัสสำหรับสมัคร Admin</Label>
+                    <Input
+                      id="adminCode"
+                      type="password"
+                      placeholder="กรอกรหัส M&M"
+                      value={formData.adminCode}
+                      onChange={(e) =>
+                        setFormData({ ...formData, adminCode: e.target.value })
+                      }
+                      required={formData.role === 'admin'}
+                    />
+                  </div>
+                </div>
               )}
             </div>
             <Button type="submit" className="w-full" disabled={isPending}>
