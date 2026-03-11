@@ -20,7 +20,7 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     role: 'user' as UserRole,
-    adminCode: '',
+    secretCode: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,7 +44,7 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         role: formData.role,
-        adminCode: formData.role === 'admin' ? formData.adminCode : undefined,
+        secretCode: formData.secretCode,
       },
       {
         onSuccess: () => {
@@ -143,28 +143,24 @@ export default function RegisterPage() {
               </div>
             </RadioGroup>
               {formData.role === 'admin' && (
-                <div className="space-y-3">
-                  <Card className="border-primary/30 bg-primary/5 backdrop-blur-sm">
-                    <CardContent className="pt-4">
-                      <p className="text-xs sm:text-sm text-muted-foreground">
-                        ⚠️ <strong>คำเตือน:</strong> บัญชีผู้ดูแลระบบมีสิทธิ์เข้าถึงและจัดการข้อมูลทั้งหมดของระบบ กรุณาใช้อย่างระมัดระวัง
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <div className="space-y-2">
-                    <Label htmlFor="adminCode">รหัสสำหรับสมัคร Admin</Label>
-                    <Input
-                      id="adminCode"
-                      type="password"
-                      placeholder="กรอกรหัส M&M"
-                      value={formData.adminCode}
-                      onChange={(e) =>
-                        setFormData({ ...formData, adminCode: e.target.value })
-                      }
-                      required={formData.role === 'admin'}
-                    />
-                  </div>
-                </div>
+                <Card className="border-primary/30 bg-primary/5 backdrop-blur-sm">
+                  <CardContent className="pt-4">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      ⚠️ <strong>คำเตือน:</strong> บัญชีผู้ดูแลระบบมีสิทธิ์เข้าถึงและจัดการข้อมูลทั้งหมดของระบบ กรุณาใช้อย่างระมัดระวัง
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      <Label htmlFor="secretCode">รหัสลับร้าน (สำหรับสมัครเป็น Admin)</Label>
+                      <Input
+                        id="secretCode"
+                        type="text"
+                        placeholder="กรอกรหัสลับของทางร้าน"
+                        value={formData.secretCode}
+                        onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })}
+                        required={formData.role === 'admin'}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
             <Button type="submit" className="w-full" disabled={isPending}>

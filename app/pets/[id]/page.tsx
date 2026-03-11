@@ -168,11 +168,6 @@ export default function PetDetailPage() {
                               ? 'พร้อมเล่น'
                               : 'ไม่พร้อม'}
                           </p>
-                          {slot.maxRounds && (
-                            <p className="text-xs text-muted-foreground">
-                              รอบ: {slot.currentRound || 0}/{slot.maxRounds}
-                            </p>
-                          )}
                         </div>
                       );
                     } catch (error) {

@@ -11,20 +11,11 @@ export const mockUsers: User[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-  {
-    id: '2',
-    email: 'user@example.com',
-    name: 'User',
-    role: 'user',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
 ];
 
 // Mock Passwords (plain text for demo - ใน production ต้อง hash)
 export const mockPasswords: Record<string, string> = {
   'admin@petcafe.com': 'admin123',
-  'user@example.com': 'user123',
 };
 
 // Mock Menu Items
