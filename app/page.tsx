@@ -3,51 +3,13 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { QrCode, Clock, Calendar, Sparkles, Image as ImageIcon } from 'lucide-react';
-import { useWeeklySchedules } from '@/lib/api/queries/pets';
 import { useBanners, usePromotions } from '@/lib/api/queries/promotions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-const dayNames = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
-
-// ใช้ timezone เดียวกับ dashboard (Asia/Bangkok)
-const toThailandDateString = (date: Date): string => {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Bangkok',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-  return formatter.format(date);
-};
-
 export default function HomePage() {
-  const { data: weeklyData, isLoading: schedulesLoading, error: schedulesError } = useWeeklySchedules();
   const { data: banners, isLoading: bannersLoading } = useBanners();
   const { data: promotions, isLoading: promotionsLoading } = usePromotions();
-
-  // Get dates for the week (Sunday to Saturday)
-  const getWeekDates = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
-    const sunday = new Date(today);
-    sunday.setDate(today.getDate() - dayOfWeek);
-    sunday.setHours(0, 0, 0, 0);
-    
-    const dates: { date: string; dayName: string }[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(sunday);
-      date.setDate(sunday.getDate() + i);
-      dates.push({
-        // ใช้ key แบบเดียวกับ useWeeklySchedules (Asia/Bangkok)
-        date: toThailandDateString(date),
-        dayName: dayNames[i],
-      });
-    }
-    return dates;
-  };
-
-  const weekDates = getWeekDates();
   return (
     <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12 lg:py-16">
       {/* Banners Section */}
@@ -287,146 +249,6 @@ export default function HomePage() {
           )}
         </section>
       )}
-
-      {/* Weekly Schedule Section */}
-      <section className="mb-8 sm:mb-12 md:mb-16 lg:mb-20 fade-in">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8 px-2 sm:px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text">
-            ตารางสัตว์เลี้ยงรายสัปดาห์
-          </h2>
-          <Button asChild variant="outline" size="sm" className="hidden sm:flex rounded-xl sm:rounded-2xl border-2 hover:border-primary/50 w-full sm:w-auto">
-            <Link href="/pets/weekly" className="flex items-center gap-2 text-xs sm:text-sm md:text-base">
-              <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
-              ดูแบบเต็ม
-            </Link>
-          </Button>
-        </div>
-        
-        {schedulesLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-primary border-r-transparent"></div>
-          </div>
-        ) : schedulesError ? (
-          <div className="flex items-center justify-center py-8">
-            <p className="text-sm text-muted-foreground">ไม่สามารถโหลดตารางเวลาได้</p>
-          </div>
-        ) : (
-          <div className="space-y-2 sm:space-y-3 md:space-y-4 max-w-5xl mx-auto px-2 sm:px-4">
-            {weekDates.map(({ date, dayName }, index) => {
-              const dateObj = new Date(date + 'T00:00:00+07:00');
-              const schedules = Array.isArray(weeklyData?.[date]) ? weeklyData[date] : [];
-              // Filter pets that have schedules with timeSlots (added by admin)
-              const petsWithSchedules = schedules
-                .filter(schedule => 
-                  schedule?.pet?.isActive && 
-                  Array.isArray(schedule?.timeSlots) && 
-                  schedule.timeSlots.length > 0
-                )
-                .map(schedule => ({
-                  pet: schedule.pet,
-                  schedule: schedule
-                }))
-                .filter((item, index, self) => 
-                  item.pet?.id && index === self.findIndex(i => i.pet?.id === item.pet?.id)
-                ) as Array<{ pet: any; schedule: any }>;
-
-              const isToday = toThailandDateString(new Date()) === date;
-              const dayNumber = dateObj.getDate();
-              const month = dateObj.getMonth() + 1;
-
-              return (
-                <Card 
-                  key={date} 
-                  className={`border-2 border-border/50 rounded-xl sm:rounded-2xl glass card-hover transition-all duration-300 ${
-                    isToday ? 'ring-2 ring-primary/60 bg-primary/10 shadow-lg' : ''
-                  }`}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <CardContent className="p-3 sm:p-4 md:p-5">
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      {/* Day Header */}
-                      <div className="flex-shrink-0 w-16 xs:w-20 sm:w-24 md:w-28 text-center">
-                        <div className={`text-xs sm:text-sm md:text-base font-semibold mb-1 ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-                          วัน{dayName}
-                        </div>
-                        <div className={`text-base sm:text-lg md:text-xl lg:text-2xl font-bold ${isToday ? 'text-primary' : 'text-foreground'}`}>
-                          {dayNumber}
-                        </div>
-                        <div className="text-[10px] xs:text-xs text-muted-foreground">
-                          {month}/{dateObj.getFullYear()}
-                        </div>
-                        {isToday && (
-                          <Badge variant="default" className="mt-1.5 text-[10px] xs:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 animate-pulse">
-                            วันนี้
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Pets List */}
-                      <div className="flex-1 min-w-0">
-                        {petsWithSchedules.length > 0 ? (
-                          <div className="flex flex-wrap gap-2 sm:gap-2.5 md:gap-3">
-                            {petsWithSchedules.map(({ pet, schedule }) => {
-                              if (!pet || !schedule) return null;
-                              const availableRounds = Array.isArray(schedule?.timeSlots) 
-                                ? schedule.timeSlots.filter(
-                                    (slot: any) => slot?.isAvailable && !slot?.isRestTime
-                                  ).length 
-                                : 0;
-                              
-                              return (
-                                <Link
-                                  key={pet.id}
-                                  href={`/pets/${pet.id}`}
-                                  className="group flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg sm:rounded-xl border-2 border-border/50 bg-background/60 hover:bg-accent/40 hover:border-accent/60 transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
-                                >
-                                  {pet.image ? (
-                                    <div className="relative w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden border-2 border-border/50 group-hover:border-primary/60 transition-all duration-300">
-                                      <img
-                                        src={pet.image}
-                                        alt={pet.name}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
-                                      />
-                                    </div>
-                                  ) : (
-                                    <div className="w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-lg sm:rounded-xl bg-muted flex items-center justify-center text-lg xs:text-xl sm:text-2xl border-2 border-border/50 group-hover:border-primary/60 transition-all duration-300">
-                                      🐾
-                                    </div>
-                                  )}
-                                  <div className="flex flex-col min-w-0">
-                                    <span className="text-[10px] xs:text-xs sm:text-sm font-medium text-primary group-hover:text-accent transition-colors truncate max-w-[80px] xs:max-w-[100px] sm:max-w-none">
-                                      {pet?.name || 'ไม่ระบุชื่อ'}
-                                    </span>
-                                    {availableRounds > 0 && (
-                                      <span className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-                                        {availableRounds} รอบ
-                                      </span>
-                                    )}
-                                    {schedule?.timeSlots?.length > 0 && availableRounds === 0 && (
-                                      <span className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground">
-                                        {schedule.timeSlots.length} ช่วงเวลา
-                                      </span>
-                                    )}
-                                  </div>
-                                </Link>
-                              );
-                            }).filter(Boolean)}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground italic py-2">
-                            <Calendar className="h-3 w-3 xs:h-4 xs:w-4 opacity-50 flex-shrink-0" />
-                            <span>ไม่มีสัตว์เลี้ยงพร้อมเล่น</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </section>
 
       {/* Quick Links */}
       <section className="mb-8 sm:mb-12 md:mb-16 fade-in">
